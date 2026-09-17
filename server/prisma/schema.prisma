@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleName {
+  FARMER
+  OWNER
+  ADMIN
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id           String      @id @default(uuid())
+  phone        String      @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  userRoles     UserRole[]
+  farmerProfile FarmerProfile?
+  ownerProfile  OwnerProfile?
+  bookings      Booking[]     @relation("FarmerBookings")
+}
+
+model Role {
+  id    String   @id @default(uuid())
+  name  RoleName @unique
+  users UserRole[]
+}
+
+model UserRole {
+  id     String @id @default(uuid())
+  userId String
+  roleId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+}
+
+model OtpVerification {
+  id         String   @id @default(uuid())
+  phone      String
+  code       String
+  expiresAt  DateTime
+  isVerified Boolean  @default(false)
+  purpose    String   @default("REGISTRATION") // REGISTRATION, LOGIN, RESET_PASSWORD
+  createdAt  DateTime @default(now())
+}
+
+model FarmerProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  district       String?
+  taluk          String?
+  village        String?
+  pincode        String?
+  state          String?  @default("Karnataka")
+  totalLandAcres Float?   @default(0)
+  primaryCrops   String?  // Comma separated list of crops
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  farms Farm[]
+}
+
+model Farm {
+  id           String   @id @default(uuid())
+  farmerProfileId String
+  name         String
+  locationName String
+  latitude     Float?
+  longitude    Float?
+  areaAcres    Float
+  soilType     String?
+  createdAt    DateTime @default(now())
+
+  farmerProfile FarmerProfile @relation(fields: [farmerProfileId], references: [id], onDelete: Cascade)
+  crops         Crop[]
+}
+
+model Crop {
+  id        String   @id @default(uuid())
+  farmId    String
+  cropName  String
+  season    String?  // Kharif, Rabi, Summer
+  areaAcres Float?
+  createdAt DateTime @default(now())
+
+  farm Farm @relation(fields: [farmId], references: [id], onDelete: Cascade)
+}
+
+model OwnerProfile {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  businessName String?
+  locationName String?
+  district     String?
+  state        String?  @default("Karnataka")
+  pincode      String?
+  contactPhone String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  equipment Equipment[]
+}
+
+model Equipment {
+  id                 String             @id @default(uuid())
+  ownerProfileId     String
+  title              String
+  equipmentType      String             // Tractor, Harvester, Rotavator, Sprayer, Seeder, Tiller, etc.
+  brand              String
+  model              String
+  description        String
+  pricePerDay        Float
+  locationName       String
+  latitude           Float?
+  longitude          Float?
+  verificationStatus VerificationStatus @default(VERIFIED)
+  isActive           Boolean            @default(true)
+  imageUrl           String?
+  specs              String?            // Additional technical specifications
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  ownerProfile OwnerProfile @relation(fields: [ownerProfileId], references: [id], onDelete: Cascade)
+  bookings     Booking[]
+  ratings      Rating[]
+}
+
+model Booking {
+  id            String        @id @default(uuid())
+  bookingNumber String        @unique
+  equipmentId   String
+  farmerId      String
+  startDate     DateTime
+  endDate       DateTime
+  totalDays     Int
+  pricePerDay   Float
+  totalAmount   Float
+  status        BookingStatus @default(PENDING)
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  equipment Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  farmer    User      @relation("FarmerBookings", fields: [farmerId], references: [id], onDelete: Cascade)
+  rating    Rating?
+}
+
+model Rating {
+  id          String   @id @default(uuid())
+  bookingId   String   @unique
+  equipmentId String
+  farmerId    String
+  stars       Int
+  comment     String?
+  createdAt   DateTime @default(now())
+
+  equipment Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  booking   Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}

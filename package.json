@@ -1,0 +1,22 @@
+{
+  "name": "agri-equipment-rental-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Asset-Light Farming: Optimizing Operational Costs through Managed Equipment Access - BE Major Project MVP",
+  "workspaces": [
+    "server",
+    "apps/farmer-web",
+    "apps/owner-web"
+  ],
+  "scripts": {
+    "dev:server": "npm --prefix server run dev",
+    "dev:farmer": "npm --prefix apps/farmer-web run dev",
+    "dev:owner": "npm --prefix apps/owner-web run dev",
+    "build:server": "npm --prefix server run build",
+    "build:farmer": "npm --prefix apps/farmer-web run build",
+    "build:owner": "npm --prefix apps/owner-web run build",
+    "prisma:generate": "npm --prefix server run prisma:generate",
+    "prisma:push": "npm --prefix server run prisma:push",
+    "prisma:seed": "npm --prefix server run prisma:seed"
+  }
+}
