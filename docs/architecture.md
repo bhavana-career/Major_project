@@ -10,15 +10,15 @@ The system is engineered as a **Modular Monolith** supporting a two-sided market
 
 ```mermaid
 graph TD
-    subgraph Frontend Applications
+    subgraph Frontend_Apps ["Frontend Applications"]
         FarmerUI["Farmer Web App (React + TS + Tailwind)<br/>Port: 3000"]
         OwnerUI["Owner Web App (React + TS + Tailwind)<br/>Port: 3001"]
     end
 
-    subgraph Backend Core
+    subgraph Backend_Core ["Backend Core"]
         ExpressServer["Express.js REST API Backend<br/>Port: 5000"]
         
-        subgraph Internal Modules
+        subgraph Internal_Modules ["Internal Modules"]
             AuthMod["Auth & Dev OTP Module"]
             FarmerMod["Farmer & Farm Profile Module"]
             OwnerMod["Owner Profile Module"]
@@ -27,7 +27,7 @@ graph TD
         end
     end
 
-    subgraph Database Layer
+    subgraph Database_Layer ["Database Layer"]
         PostgresDB[("PostgreSQL Database<br/>(agri_rental)")]
         PrismaORM["Prisma ORM"]
     end
@@ -40,7 +40,11 @@ graph TD
     ExpressServer --> EquipMod
     ExpressServer --> BookingMod
     
-    AuthMod & FarmerMod & OwnerMod & EquipMod & BookingMod --> PrismaORM
+    AuthMod --> PrismaORM
+    FarmerMod --> PrismaORM
+    OwnerMod --> PrismaORM
+    EquipMod --> PrismaORM
+    BookingMod --> PrismaORM
     PrismaORM --> PostgresDB
 ```
 
@@ -54,7 +58,7 @@ erDiagram
     Role ||--o{ UserRole : "assigned"
     User ||--o| FarmerProfile : "owns"
     User ||--o| OwnerProfile : "owns"
-    User ||--o{ Booking : "creates (Farmer)"
+    User ||--o{ Booking : "creates"
     
     FarmerProfile ||--o{ Farm : "contains"
     Farm ||--o{ Crop : "grows"
@@ -184,12 +188,12 @@ sequenceDiagram
 
 ```mermaid
 graph LR
-    subgraph Current Implementation (MVP)
+    subgraph Current_MVP ["Current Implementation (MVP)"]
         LocalCoords["Local Coordinates / Address Input"] --> Haversine["Haversine Formula Engine"]
         Haversine --> DistanceKm["Calculates Straight-Line Distance (km)"]
     end
 
-    subgraph Future Integration Phase
+    subgraph Future_Phase ["Future Integration Phase"]
         DistanceKm -.-> GoogleMapsMatrix["Google Maps Distance Matrix API"]
         GoogleMapsMatrix -.-> TransportPricing["Distance-Based Transport & Pricing Engine"]
     end
